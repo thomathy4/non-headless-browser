@@ -2,6 +2,7 @@ package com.nonheadless.browser
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import org.jsoup.parser.Parser
 import java.net.URI
 
 /**
@@ -19,6 +20,16 @@ internal object HtmlReencoder {
         document.outputSettings().prettyPrint(false)
         val records = mutableListOf<Record>()
         var counter = 0
+
+        // Jsoup parses noscript contents as text in scripting-enabled mode. Reparse that
+        // text in the surrounding body context so static fallback markup remains inspectable.
+        document.select("noscript").toList().forEach { fallback ->
+            val fallbackMarkup = fallback.wholeText()
+            val context = fallback.parent() ?: document.body()
+            val fallbackNodes = Parser.parseFragment(fallbackMarkup, context, pageUrl.orEmpty())
+            fallback.empty()
+            fallback.appendChildren(fallbackNodes)
+        }
 
         document.select("script").toList().forEach { script ->
             counter += 1
