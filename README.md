@@ -9,11 +9,11 @@ An Android WebView browser with JavaScript disabled by default, a main-frame dom
 | JavaScript | Off | Disables page-authored JavaScript and DOM storage on startup. |
 | Domain Lock | On | Restricts top-level navigation to the current root host and its subdomains. |
 | Desktop UA | Off | Requests desktop layouts with a Linux Chromium User-Agent. |
-| Capture HTML | — | Extracts the current document, adds stable local site/page identifiers and capture metadata, converts each hyperlink into an expandable HTML link record with a nested historical-captures dropdown, converts scripts and inline event handlers into inspectable HTML metadata, and supports preview, render, copy, and share. |
+| Capture HTML | — | Extracts the rendered DOM as an HTML snapshot, adds provisional URL-derived prototype keys and a representation-generation timestamp, converts each hyperlink into an expandable HTML record with an explicitly unimplemented historical-navigation placeholder, converts scripts and inline event handlers into inspectable HTML metadata, and supports preview, render, copy, and share. |
 
 ## Architecture direction
 
-The longer-term design is an HTML-first local web: one locally navigable website per domain, with a canonical HTML entry point, self-describing rewritten pages, historical link navigation, revision/provenance records, and stable local addressing. Historical captures and their dependencies are represented within the page's own HTML interface; missing or approximate material must be disclosed rather than silently replaced with live content.
+The longer-term design is an HTML-first local web: one locally navigable website per domain, with a canonical HTML entry point, self-describing rewritten pages, historical link navigation, original-receipt/provenance records, revisions, and stable local addressing. This is the intended architecture, not the current product capability. Historical captures and their dependencies are represented within the page's own HTML interface; missing or approximate material must be disclosed rather than silently replaced with live content.
 
 The proposed **HTML Layout Protocol (HLP)** and **Local Web Address and Allocation Protocol (LWAP)** are project design proposals, not existing standards and not yet implemented.
 
@@ -25,9 +25,9 @@ The lock applies to top-level navigations initiated by links, page redirects, an
 
 ## HTML capture
 
-Capture uses WebView document extraction and Jsoup parsing. It replaces inline/external script elements, stores inline script source as escaped text, preserves external script URLs as links, converts inline on-event attributes to data attributes, converts noscript containers to ordinary div elements, and appends a provenance manifest.
+The current Snapshot HTML action extracts `document.documentElement.outerHTML` from WebView and processes that rendered DOM with Jsoup. It is not an original HTTP-response capture and does not create an immutable receipt. It replaces inline/external script elements, stores inline script source as escaped text, preserves external script URLs as links, converts inline on-event attributes to data attributes, converts noscript containers to ordinary div elements, and appends a provenance manifest.
 
-Rewritten output includes a page-history disclosure, deterministic local site/document identifiers, a generated-at timestamp, and one expandable record for each original hyperlink. Each link record preserves the original href and link attributes, exposes the resolved destination, and contains a nested historical-captures dropdown. The prototype honestly reports that local captures and historical indexes are not yet connected; it does not fabricate capture dates, claim durable storage, or silently substitute live pages.\n\nThis is script neutralization for inspection, **not a complete HTML sanitizer**. It does not guarantee that every active HTML feature, embedded frame, remote resource, form, CSS behavior, or navigation mechanism is inert. Captured snapshots are displayed with JavaScript disabled.
+The HTML snapshot includes a representation-status disclosure, provisional URL-derived prototype keys (not registered local identities), a representation-generated timestamp (not a receipt or capture time), and one expandable record for each original hyperlink. Each link record preserves the original href and link attributes and exposes the resolved destination. Historical navigation is not implemented; the placeholder explicitly says so. The current preview is not persisted, no original HTTP response receipt is stored, and no historical records are asserted.\n\nThis is script neutralization for inspection, **not a complete HTML sanitizer**. It does not guarantee that every active HTML feature, embedded frame, remote resource, form, CSS behavior, or navigation mechanism is inert. Captured snapshots are displayed with JavaScript disabled.
 
 ## Network and privacy
 
