@@ -9,7 +9,7 @@ An Android WebView browser with JavaScript disabled by default, a main-frame dom
 | JavaScript | Off | Disables page-authored JavaScript and DOM storage on startup. |
 | Domain Lock | On | Restricts top-level navigation to the current root host and its subdomains. |
 | Desktop UA | Off | Requests desktop layouts with a Linux Chromium User-Agent. |
-| Capture HTML | — | Extracts the current document, converts scripts and inline event handlers into inspectable HTML metadata, and supports preview, render, copy, and share. |
+| Capture HTML | — | Extracts the current document, adds stable local site/page identifiers and capture metadata, converts each hyperlink into an expandable HTML link record with a nested historical-captures dropdown, converts scripts and inline event handlers into inspectable HTML metadata, and supports preview, render, copy, and share. |
 
 ## Architecture direction
 
@@ -27,7 +27,7 @@ The lock applies to top-level navigations initiated by links, page redirects, an
 
 Capture uses WebView document extraction and Jsoup parsing. It replaces inline/external script elements, stores inline script source as escaped text, preserves external script URLs as links, converts inline on-event attributes to data attributes, converts noscript containers to ordinary div elements, and appends a provenance manifest.
 
-This is script neutralization for inspection, **not a complete HTML sanitizer**. It does not guarantee that every active HTML feature, embedded frame, remote resource, form, CSS behavior, or navigation mechanism is inert. Captured snapshots are displayed with JavaScript disabled.
+Rewritten output includes a page-history disclosure, deterministic local site/document identifiers, a generated-at timestamp, and one expandable record for each original hyperlink. Each link record preserves the original href and link attributes, exposes the resolved destination, and contains a nested historical-captures dropdown. The prototype honestly reports that local captures and historical indexes are not yet connected; it does not fabricate capture dates, claim durable storage, or silently substitute live pages.\n\nThis is script neutralization for inspection, **not a complete HTML sanitizer**. It does not guarantee that every active HTML feature, embedded frame, remote resource, form, CSS behavior, or navigation mechanism is inert. Captured snapshots are displayed with JavaScript disabled.
 
 ## Network and privacy
 
