@@ -44,10 +44,6 @@ class HtmlReencoderTest {
         assertTrue(fallback.select("p").text().contains("Fallback"))
         assertTrue(fallback.select("script").isEmpty())
         assertTrue(fallback.select("[data-js-reencoded=inline]").size == 1)
-        assertTrue(
-            "Button missing from fallback. Fallback HTML: ${fallback.outerHtml()} | Document HTML: ${doc.outerHtml()}",
-            fallback.selectFirst("button") != null
-        )
         val button = fallback.selectFirst("button")!!
         assertFalse(button.hasAttr("onclick"))
         assertTrue(button.hasAttr("data-js-event-click"))
