@@ -186,7 +186,7 @@ class MainActivity : AppCompatActivity() {
             tvStatus.text = if (enabled) "JavaScript enabled" else "JavaScript disabled"
             if (!suppressJsToggleReload) reloadCurrentPage()
         }
-        btnCapture.setOnClickListener { captureRenderedHtml() }
+        btnCapture.setOnClickListener { snapshotRenderedHtml() }
     }
 
     private fun reloadCurrentPage() {
@@ -251,8 +251,8 @@ class MainActivity : AppCompatActivity() {
         btnForward.isEnabled = webView.canGoForward()
     }
 
-    private fun captureRenderedHtml() {
-        tvStatus.text = "Extracting the current document..."
+    private fun snapshotRenderedHtml() {
+        tvStatus.text = "Extracting the rendered DOM snapshot..."
         val sourceUrl = lastHttpUrl
         webView.evaluateJavascript(
             "(function(){return document.documentElement ? document.documentElement.outerHTML : '';})()"
@@ -261,15 +261,15 @@ class MainActivity : AppCompatActivity() {
                 if (result == null) "" else JSONTokener(result).nextValue() as? String ?: ""
             } catch (_: Exception) { "" }
             if (html.isBlank()) {
-                tvStatus.text = "Capture returned no document HTML"
+                tvStatus.text = "Snapshot returned no document HTML"
                 Toast.makeText(this, "No HTML was returned by WebView", Toast.LENGTH_LONG).show()
                 return@evaluateJavascript
             }
-            showCaptureDialog(html, HtmlReencoder.reencode(html, sourceUrl), sourceUrl)
+            showSnapshotDialog(html, HtmlReencoder.reencode(html, sourceUrl), sourceUrl)
         }
     }
 
-    private fun showCaptureDialog(raw: String, neutralized: String, sourceUrl: String) {
+    private fun showSnapshotDialog(raw: String, neutralized: String, sourceUrl: String) {
         val pad = (16 * resources.displayMetrics.density).toInt()
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -296,7 +296,7 @@ class MainActivity : AppCompatActivity() {
             val html = chosen()
             dialog?.setTitle(label() + " (" + html.length + " chars)")
             preview.text = if (html.length > 6000) html.take(6000) + "\\n\\n... [preview truncated]" else html
-            tvStatus.text = "Captured " + html.length + " characters (" + label() + ")"
+            tvStatus.text = "Snapshot prepared: " + html.length + " characters (" + label() + ")"
         }
         toggle.setOnCheckedChangeListener { _, _ -> refresh() }
         render.setOnClickListener {
@@ -310,13 +310,13 @@ class MainActivity : AppCompatActivity() {
             .setView(container)
             .setPositiveButton("Copy HTML") { _, _ ->
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("Captured HTML", chosen()))
+                clipboard.setPrimaryClip(ClipData.newPlainText("Rendered DOM snapshot", chosen()))
                 Toast.makeText(this, "Copied " + chosen().length + " characters", Toast.LENGTH_SHORT).show()
             }
             .setNeutralButton("Share HTML") { _, _ ->
                 val send = Intent(Intent.ACTION_SEND).apply {
                     type = "text/html"
-                    putExtra(Intent.EXTRA_SUBJECT, "Captured HTML - " + sourceUrl)
+                    putExtra(Intent.EXTRA_SUBJECT, "Rendered DOM snapshot - " + sourceUrl)
                     putExtra(Intent.EXTRA_TEXT, chosen())
                 }
                 startActivity(Intent.createChooser(send, "Share HTML document"))
