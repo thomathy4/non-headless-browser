@@ -32,7 +32,6 @@ internal object HtmlReencoder {
             } else {
                 fallback.html()
             }
-            val fallbackNodes = Jsoup.parseBodyFragment(fallbackMarkup, pageUrl.orEmpty()).body().childNodes()
             counter += 1
             val id = "js-$counter"
             val replacement = Element("div")
@@ -40,8 +39,11 @@ internal object HtmlReencoder {
                 .addClass("js-reencoded-noscript")
                 .attr("data-js-reencoded", "noscript")
             replacement.appendElement("small").text("[JS Abstraction #$counter — NoScript Fallback]")
+            // Parse the fallback directly in its final DIV context. This avoids
+            // transferring detached nodes from a temporary document and preserves
+            // sibling elements (including controls) for the later script/event pass.
+            replacement.append(fallbackMarkup)
             fallback.replaceWith(replacement)
-            replacement.appendChildren(fallbackNodes)
             records += Record(
                 id, "NoScript Fallback", "noscript", null,
                 "${replacement.text().length} chars static fallback"
@@ -119,16 +121,16 @@ internal object HtmlReencoder {
     private fun enrichDocumentIdentity(document: org.jsoup.nodes.Document, pageUrl: String?) {
         val canonicalUrl = canonicalPageUrl(pageUrl)
         val host = try { URI(canonicalUrl).host?.lowercase().orEmpty() } catch (_: Exception) { "" }
-        val siteId = stableId("site", host.ifBlank { canonicalUrl })
-        val documentId = stableId("document", canonicalUrl)
+        val siteKey = stableId("site", host.ifBlank { canonicalUrl })
+        val documentKey = stableId("document", canonicalUrl)
         val generatedAt = Instant.now().toString()
 
         document.head().appendElement("meta")
-            .attr("name", "local-site-id").attr("content", siteId)
+            .attr("name", "prototype-site-key").attr("content", siteKey)
         document.head().appendElement("meta")
-            .attr("name", "local-document-id").attr("content", documentId)
+            .attr("name", "prototype-document-key").attr("content", documentKey)
         document.head().appendElement("meta")
-            .attr("name", "local-capture-generated-at").attr("content", generatedAt)
+            .attr("name", "local-representation-generated-at").attr("content", generatedAt)
         document.head().appendElement("meta")
             .attr("name", "local-source-url").attr("content", canonicalUrl)
 
@@ -143,18 +145,18 @@ internal object HtmlReencoder {
 
         val pageHistory = Element("details").attr("class", "local-page-history")
             .attr("id", "local-page-history")
-            .attr("data-local-document-id", documentId)
-        pageHistory.appendElement("summary").text("Page history and local record")
+            .attr("data-prototype-document-key", documentKey)
+        pageHistory.appendElement("summary").text("Page representation and record status")
         val data = pageHistory.appendElement("div").addClass("local-record-data")
         data.appendElement("p").text("Original page: $canonicalUrl")
-        data.appendElement("p").text("Local site identity: $siteId")
-        data.appendElement("p").text("Local document identity: $documentId")
-        data.appendElement("p").text("Re-encoded at: $generatedAt")
+        data.appendElement("p").text("Prototype site key (URL-derived; not a registered local site identity): $siteKey")
+        data.appendElement("p").text("Prototype document key (URL-derived; not a persistent local document identity): $documentKey")
+        data.appendElement("p").text("Representation generated at: $generatedAt")
         data.appendElement("p").text(
-            "Archive status: this prototype generates the HTML record but does not yet persist page captures."
+            "Receipt status: this preview is derived from the rendered DOM. The original HTTP response and its receipt metadata are not stored."
         )
         data.appendElement("p").text(
-            "Historical versions: no locally stored historical captures are connected yet."
+            "Storage status: this preview is not persisted; no local archive or historical index is connected."
         )
         document.body().prependChild(pageHistory)
     }
@@ -187,8 +189,8 @@ internal object HtmlReencoder {
             data.appendElement("p").text("Resolved destination: $destination")
             data.appendElement("p").text("Local destination: not assigned by this prototype")
             val historical = data.appendElement("details").addClass("local-historical-captures")
-            historical.appendElement("summary").text("Historical captures")
-            historical.appendElement("p").text("No local historical captures indexed")
+            historical.appendElement("summary").text("Local historical versions (not implemented)")
+            historical.appendElement("p").text("Historical navigation is not connected. No historical records are being asserted.")
             data.appendElement("p").text(
                 "The original link attributes are preserved on the destination link below."
             )
