@@ -11,6 +11,14 @@ An Android WebView browser with JavaScript disabled by default, a main-frame dom
 | Desktop UA | Off | Requests desktop layouts with a Linux Chromium User-Agent. |
 | Capture HTML | — | Extracts the current document, converts scripts and inline event handlers into inspectable HTML metadata, and supports preview, render, copy, and share. |
 
+## Architecture direction
+
+The longer-term design is an HTML-first local web: one locally navigable website per domain, with a canonical HTML entry point, self-describing rewritten pages, historical link navigation, revision/provenance records, and stable local addressing. Historical captures and their dependencies are represented within the page's own HTML interface; missing or approximate material must be disclosed rather than silently replaced with live content.
+
+The proposed **HTML Layout Protocol (HLP)** and **Local Web Address and Allocation Protocol (LWAP)** are project design proposals, not existing standards and not yet implemented.
+
+See [Local Web, Historical Navigation, and HTML Layout Architecture](docs/architecture/local-web-historical-navigation-and-html-layout.md) for the architecture, Wayback/Internet Archive research, design principles, limitations, and staged implementation path.
+
 ## Domain lock boundary
 
 The lock applies to top-level navigations initiated by links, page redirects, and browser controls. It is not a network firewall and does not block every third-party image, stylesheet, font, iframe, or other subresource. Sites may still make background requests to other hosts. Entering a new address intentionally establishes that host as the new locked root.
