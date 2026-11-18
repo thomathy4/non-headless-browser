@@ -24,8 +24,8 @@ internal object HtmlReencoder {
 
         // Preserve fallback markup whether Jsoup initially represented it as raw text
         // (scripting-enabled noscript parsing) or as ordinary child elements.
-        // Replace the noscript element before attaching parsed nodes so the final DOM
-        // is an ordinary container and can be traversed consistently.
+        // Parse the markup in the replacement DIV so the normal script and event pass
+        // can inspect all fallback descendants consistently.
         document.select("noscript").toList().forEach { fallback ->
             val fallbackMarkup = if (fallback.childNodes().all { it is org.jsoup.nodes.TextNode }) {
                 fallback.childNodes().joinToString("") { (it as org.jsoup.nodes.TextNode).wholeText }
@@ -179,7 +179,7 @@ internal object HtmlReencoder {
 
             val record = Element("details").addClass("local-link-history")
                 .attr("id", linkId)
-                .attr("data-local-link-id", linkId)
+                .attr("data-prototype-link-key", linkId)
                 .attr("data-original-href", rawHref)
                 .attr("data-original-destination", destination)
             record.appendElement("summary").text("Link record — $label")
@@ -198,7 +198,7 @@ internal object HtmlReencoder {
                 .attr("href", destination.ifBlank { rawHref })
                 .attr("data-original-href", rawHref)
                 .attr("data-original-destination", destination)
-                .attr("data-local-link-id", linkId)
+                .attr("data-prototype-link-key", linkId)
             data.appendElement("p").appendChild(preservedLink)
             original.replaceWith(record)
         }
