@@ -48,4 +48,44 @@ class HtmlReencoderTest {
         assertFalse(button.hasAttr("onclick"))
         assertTrue(button.hasAttr("data-js-event-click"))
     }
+
+
+    @Test
+    fun enrichesLinksWithExpandableHistoricalRecords() {
+        val input = """<html><head><title>Example</title></head><body><a href="/about">About us</a></body></html>"""
+        val output = HtmlReencoder.reencode(input, "https://example.test/index.html")
+        val doc = Jsoup.parse(output)
+        val record = doc.selectFirst("details.local-link-history")!!
+        assertTrue(record.selectFirst("summary")!!.text().contains("About us"))
+        assertTrue(record.text().contains("https://example.test/about"))
+        assertTrue(record.text().contains("No local historical captures indexed"))
+        assertTrue(record.selectFirst("a[data-original-destination]")!!.attr("href") == "https://example.test/about")
+    }
+
+    @Test
+    fun addsStableLocalPageIdentityAndCaptureMetadata() {
+        val input = """<html><body><p>Page</p></body></html>"""
+        val first = Jsoup.parse(HtmlReencoder.reencode(input, "https://example.test/page"))
+        val second = Jsoup.parse(HtmlReencoder.reencode(input, "https://example.test/page"))
+        assertTrue(first.selectFirst("meta[name=local-site-id]")!!.attr("content").isNotBlank())
+        assertTrue(first.selectFirst("meta[name=local-document-id]")!!.attr("content").isNotBlank())
+        assertTrue(first.selectFirst("meta[name=local-capture-generated-at]")!!.attr("content").isNotBlank())
+        assertTrue(first.selectFirst("meta[name=local-site-id]")!!.attr("content") ==
+            second.selectFirst("meta[name=local-site-id]")!!.attr("content"))
+        assertTrue(first.selectFirst("meta[name=local-document-id]")!!.attr("content") ==
+            second.selectFirst("meta[name=local-document-id]")!!.attr("content"))
+    }
+
+    @Test
+    fun preservesOriginalAnchorAttributesInsideExpandedLinkRecord() {
+        val input = """<a href="../next?q=1" target="_blank" rel="nofollow">Next</a>"""
+        val doc = Jsoup.parse(HtmlReencoder.reencode(input, "https://example.test/section/page"))
+        val record = doc.selectFirst("details.local-link-history")!!
+        val originalLink = record.selectFirst("a[data-original-destination]")!!
+        assertTrue(originalLink.attr("href") == "https://example.test/next?q=1")
+        assertTrue(originalLink.attr("target") == "_blank")
+        assertTrue(originalLink.attr("rel").contains("nofollow"))
+        assertTrue(record.selectFirst("[data-original-href]")!!.attr("data-original-href") == "../next?q=1")
+    }
+
 }
