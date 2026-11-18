@@ -4,6 +4,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Parser
 import java.net.URI
+import java.security.MessageDigest
+import java.time.Instant
 
 /**
  * Converts script elements and inline event handlers to inspectable HTML metadata.
@@ -108,8 +110,115 @@ internal object HtmlReencoder {
         }
 
         document.select("script").remove()
+        enrichDocumentIdentity(document, pageUrl)
+        enrichLinksWithHistoryRecords(document, pageUrl)
         document.body().appendChild(buildManifest(records, pageUrl))
         return document.outerHtml()
+    }
+
+
+    private fun enrichDocumentIdentity(document: org.jsoup.nodes.Document, pageUrl: String?) {
+        val canonicalUrl = canonicalPageUrl(pageUrl)
+        val host = try { URI(canonicalUrl).host?.lowercase().orEmpty() } catch (_: Exception) { "" }
+        val siteId = stableId("site", host.ifBlank { canonicalUrl })
+        val documentId = stableId("document", canonicalUrl)
+        val generatedAt = Instant.now().toString()
+
+        document.head().appendElement("meta")
+            .attr("name", "local-site-id").attr("content", siteId)
+        document.head().appendElement("meta")
+            .attr("name", "local-document-id").attr("content", documentId)
+        document.head().appendElement("meta")
+            .attr("name", "local-capture-generated-at").attr("content", generatedAt)
+        document.head().appendElement("meta")
+            .attr("name", "local-source-url").attr("content", canonicalUrl)
+
+        document.head().appendElement("style").attr("id", "local-history-record-styles").text(
+            ".local-page-history,.local-link-history{margin:.65em 0;padding:.55em .75em;" +
+                "border:1px solid #888;border-radius:.45em;background:rgba(127,127,127,.07)}" +
+                ".local-page-history summary,.local-link-history summary{cursor:pointer;font-weight:600}" +
+                ".local-record-label{font-size:.9em;opacity:.85}" +
+                ".local-record-data{overflow-wrap:anywhere;margin:.4em 0}" +
+                ".local-record-data code{overflow-wrap:anywhere}"
+        )
+
+        val pageHistory = Element("details").attr("class", "local-page-history")
+            .attr("id", "local-page-history")
+            .attr("data-local-document-id", documentId)
+        pageHistory.appendElement("summary").text("Page history and local record")
+        val data = pageHistory.appendElement("div").addClass("local-record-data")
+        data.appendElement("p").text("Original page: $canonicalUrl")
+        data.appendElement("p").text("Local site identity: $siteId")
+        data.appendElement("p").text("Local document identity: $documentId")
+        data.appendElement("p").text("Re-encoded at: $generatedAt")
+        data.appendElement("p").text(
+            "Archive status: this prototype generates the HTML record but does not yet persist page captures."
+        )
+        data.appendElement("p").text(
+            "Historical versions: no locally stored historical captures are connected yet."
+        )
+        document.body().prependChild(pageHistory)
+    }
+
+    private fun enrichLinksWithHistoryRecords(document: org.jsoup.nodes.Document, pageUrl: String?) {
+        val canonicalUrl = canonicalPageUrl(pageUrl)
+        val pageId = stableId("document", canonicalUrl)
+        val occurrences = mutableMapOf<String, Int>()
+
+        document.select("a[href]").toList().forEach { original ->
+            if (original.parents().any { it.hasClass("local-link-history") }) return@forEach
+            val rawHref = original.attr("href")
+            val destination = resolveDestination(rawHref, pageUrl)
+            val label = original.text().ifBlank { original.attr("title") }
+                .ifBlank { destination.ifBlank { rawHref } }
+            val occurrenceKey = "$rawHref\\n$label"
+            val occurrence = occurrences.getOrDefault(occurrenceKey, 0)
+            occurrences[occurrenceKey] = occurrence + 1
+            val linkId = stableId("link", "$pageId\\n$rawHref\\n$label\\n$occurrence")
+
+            val record = Element("details").addClass("local-link-history")
+                .attr("id", linkId)
+                .attr("data-local-link-id", linkId)
+                .attr("data-original-href", rawHref)
+                .attr("data-original-destination", destination)
+            record.appendElement("summary").text("Link record — $label")
+            val data = record.appendElement("div").addClass("local-record-data")
+            data.appendElement("p").text("Original link text: $label")
+            data.appendElement("p").text("Original href: $rawHref")
+            data.appendElement("p").text("Resolved destination: $destination")
+            data.appendElement("p").text("Local destination: not assigned by this prototype")
+            data.appendElement("p").text("Historical captures: no local historical captures indexed")
+            data.appendElement("p").text(
+                "The original link attributes are preserved on the destination link below."
+            )
+            val preservedLink = original.clone()
+                .attr("href", destination.ifBlank { rawHref })
+                .attr("data-original-href", rawHref)
+                .attr("data-original-destination", destination)
+                .attr("data-local-link-id", linkId)
+            data.appendElement("p").appendChild(preservedLink)
+            original.replaceWith(record)
+        }
+    }
+
+    private fun resolveDestination(rawHref: String, pageUrl: String?): String =
+        try {
+            if (pageUrl.isNullOrBlank()) rawHref else URI(pageUrl).resolve(rawHref).toString()
+        } catch (_: Exception) { rawHref }
+
+    private fun canonicalPageUrl(pageUrl: String?): String =
+        try {
+            if (pageUrl.isNullOrBlank()) "" else URI(pageUrl).let {
+                URI(it.scheme, it.userInfo, it.host?.lowercase(), it.port, it.path, it.query, null)
+                    .normalize().toString()
+            }
+        } catch (_: Exception) { pageUrl.orEmpty() }
+
+    private fun stableId(kind: String, value: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest(value.toByteArray(Charsets.UTF_8))
+        val token = digest.take(12).joinToString("") { "%02x".format(it) }
+        return "lw-$kind-$token"
     }
 
     private fun resolveScriptUrl(rawSource: String, pageUrl: String?): String =
