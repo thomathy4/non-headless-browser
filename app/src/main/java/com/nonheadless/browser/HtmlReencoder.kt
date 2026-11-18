@@ -21,13 +21,30 @@ internal object HtmlReencoder {
         val records = mutableListOf<Record>()
         var counter = 0
 
-        // Jsoup parses noscript contents as text in scripting-enabled mode. Reparse that
-        // text in a body context so static fallback markup remains inspectable.
+        // Preserve fallback markup whether Jsoup initially represented it as raw text
+        // (scripting-enabled noscript parsing) or as ordinary child elements.
+        // Replace the noscript element before attaching parsed nodes so the final DOM
+        // is an ordinary container and can be traversed consistently.
         document.select("noscript").toList().forEach { fallback ->
-            val fallbackMarkup = fallback.wholeText()
+            val fallbackMarkup = if (fallback.childNodes().all { it is org.jsoup.nodes.TextNode }) {
+                fallback.childNodes().joinToString("") { (it as org.jsoup.nodes.TextNode).wholeText }
+            } else {
+                fallback.html()
+            }
             val fallbackNodes = Parser.parseFragment(fallbackMarkup, document.body(), pageUrl.orEmpty())
-            fallback.empty()
-            fallback.appendChildren(fallbackNodes)
+            counter += 1
+            val id = "js-$counter"
+            val replacement = Element("div")
+                .attr("id", id)
+                .addClass("js-reencoded-noscript")
+                .attr("data-js-reencoded", "noscript")
+            replacement.appendElement("small").text("[JS Abstraction #$counter — NoScript Fallback]")
+            fallback.replaceWith(replacement)
+            replacement.appendChildren(fallbackNodes)
+            records += Record(
+                id, "NoScript Fallback", "noscript", null,
+                "${replacement.text().length} chars static fallback"
+            )
         }
 
         document.select("script").toList().forEach { script ->
