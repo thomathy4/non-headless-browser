@@ -22,11 +22,10 @@ internal object HtmlReencoder {
         var counter = 0
 
         // Jsoup parses noscript contents as text in scripting-enabled mode. Reparse that
-        // text in the surrounding body context so static fallback markup remains inspectable.
+        // text in a body context so static fallback markup remains inspectable.
         document.select("noscript").toList().forEach { fallback ->
             val fallbackMarkup = fallback.wholeText()
-            val context = fallback.parent() ?: document.body()
-            val fallbackNodes = Parser.parseFragment(fallbackMarkup, context, pageUrl.orEmpty())
+            val fallbackNodes = Parser.parseFragment(fallbackMarkup, document.body(), pageUrl.orEmpty())
             fallback.empty()
             fallback.appendChildren(fallbackNodes)
         }
