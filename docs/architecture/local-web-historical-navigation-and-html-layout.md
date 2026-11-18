@@ -1,9 +1,42 @@
 # Local Web, Historical Navigation, and HTML Layout Architecture
 
-**Status:** Proposed architecture and design direction; not yet implemented.
+**Status:** User-submitted project baseline, consolidated and locked as the governing design direction on 2026-11-18; implementation remains staged and incomplete.
 **Scope:** Browser-wide architecture for the local counterpart of each visited domain.
-**Working protocol name:** HTML Layout Protocol (HLP). This is a project proposal, not an existing web standard.
-**Related proposal:** Local Web Address and Allocation Protocol (LWAP), a browser-internal logical addressing/allocation design.
+**Working labels:** “HTML Layout Protocol” (HLP) and “Local Web Address and Allocation Protocol” (LWAP) are names used in earlier assistant-authored drafts only. They are not existing standards and are not independently approved requirements.
+
+## 0. User-submitted baseline and authority
+
+This section records the user's submissions and corrections. It takes precedence over assistant-generated examples, terminology, implementation suggestions, and earlier drafts wherever they conflict.
+
+### Governing requirements
+
+1. The browser is both a means of visiting the live web and a locally navigable, durable record of the web it has received.
+2. **HTML is the basis of the product.** The user's explicit correction is that all of the following are HTML: actual resource receipt records; the representation and organization of original resources; rendered snapshots; derived representations; persistent site and document identities; each domain's canonical local website; local navigation; and local storage organization. Browser foundations, including settings, storage, and navigation, are also to be built from, by, and for HTML. These are not separate product subsystems presented as independent archive/database/file-manager products.
+3. Each domain has one canonical local HTML website, interconnected through its pages, resources, records, and links.
+4. Each received resource has an actual, immutable receipt record. Original resource material, its receipt record, a rendered snapshot, and any rewritten, compiled, or reconstructed derivative are distinguishable and related in HTML.
+5. Rewritten or compiled HTML refers to original receipt records through compact escape-code identifiers rather than duplicating original material unnecessarily.
+6. Site and document identities are persistent. They do not depend on the current remote URL, current page layout, or physical storage placement.
+7. A visited or downloaded website should remain locally reviewable and navigable offline. Page changes accumulate as records/revisions; local Back/history navigation must not depend on the remote server.
+8. Preserve what was legitimately delivered to the browser while respecting access controls and applicable restrictions. Record incomplete, blocked, dynamic, missing, or partly reproducible material honestly.
+9. The browser's own receipts and local history are its own record. Internet Archive/Wayback research is not authorization to import, incorporate, synchronize, or integrate Wayback records. No Wayback integration is part of this agreed product direction.
+10. The user controls retention, review, and revisiting. Assistant proposals are not product decisions unless the user accepts them.
+
+### Original media submissions and later refinement
+
+- An earlier media submission specified retaining original images alongside SVG/JPEG derivatives; video was to be embedded inline, with conversion deferred.
+- A later media-design direction described using original media as reconstruction input, allowing the original payload to be discarded after successful verification while preserving its immutable receipt and evolving remote-retrieval record. A failed or unverified reconstruction must not be treated as successful.
+- The user also proposed discovering repeated/shared structures across sampled media and storing reusable patterns once, referenced by timing, placement, transformation, and other parameters.
+- These dated directions are preserved together. Do not silently collapse them into a universal retention rule for every media type; apply the specific later direction only where it clearly governs, and preserve any unresolved retention choice as unresolved.
+
+### Consent and scope
+
+The user has explicitly consented to technical review, correction of the Android source, preparation of a working APK, and the previously identified paired deliverables: (1) a working HTML prototype and (2) the HTML re-encoder upgrade. In the current instruction, the user has also authorized consolidating this baseline, correcting the project background and repository documentation accordingly, and locking the resulting user-submitted requirements as the governing design baseline.
+
+This consent applies to the existing project record and the current working branch. It does not authorize merging the pull request, changing `main`, publishing or distributing a release, changing account permissions, or adding unrelated features. Those remain separate actions requiring their own authorization.
+
+### What is implemented versus intended
+
+The current Android application is an early WebView browser with rendered-DOM snapshot extraction, HTML re-encoding for inspection, JavaScript disabled by default, and a top-level navigation domain lock. A rendered-DOM snapshot is not an original HTTP-response receipt. The current application does not yet provide the persistent HTML receipt system, canonical per-domain local website, persistent identities, complete local storage, or offline local-web navigation described above. Do not describe intended architecture as completed functionality.
 
 ## 1. Governing idea
 
@@ -11,7 +44,7 @@ The browser is both a way to visit the live web and a locally navigable record o
 
 Each domain receives one canonical local website inside the browser. That local website is an interconnected set of HTML documents and resources, rooted in one canonical site document. It is not an impersonation of the remote origin. It is the browser's own, clearly identified representation of material legitimately delivered to it.
 
-**HTML is the organizing language of the entire local web, not merely the language used to display pages.** The browser's rewritten HTML represents the received webpage and carries or references the information needed to inspect, navigate, reconstruct, and understand it: identity, links, history, provenance, resource relationships, layouts, and storage references.
+**HTML is the product's representational and organizing basis, not merely the language used to display pages.** Receipt records, original-resource representation, rendered snapshots, derived representations, persistent identities, canonical local websites, navigation, and storage organization belong to the HTML system. Rewritten HTML carries or references the information needed to inspect, navigate, reconstruct, and understand the local web.
 
 The user should not have to leave the page to reach a separate archive manager or history tool. The page's own rewritten HTML provides these capabilities inline.
 
@@ -133,7 +166,7 @@ A capture may have dependencies collected at different times. Preserve those ind
 
 **Never silently substitute a live resource or a different historical date into a historical page.** If the exact resource is missing, mark it missing. If the user chooses an approximation, disclose the substitution in the page itself.
 
-This is an important lesson from studying Internet Archive/Wayback replay: archived pages can have missing dependencies, and replay systems may use fallback behavior. This browser should make gaps and fallback choices explicit instead of hiding them.
+General research about historical replay illustrates that page dependencies can be missing and fallback behavior can obscure gaps. This browser's own records must disclose missing material and must not invent historical records or dates. This principle does not introduce Wayback as a source or product integration.
 
 ## 6. Time and revision model
 
@@ -173,7 +206,7 @@ Its purpose is to make HTML the shared container and connective structure for th
 
 HTML remains the document and semantic structure. CSS may be embedded in HTML for presentation. SVG may be embedded in HTML for scalable graphical representation. The browser should not introduce a separate proprietary document format for metadata, layout, history, or indexes.
 
-This does **not** mean every binary payload must be converted into HTML text. Audio/video codecs, binary resources, and stored chunks remain data handled by the native media and storage layers. HTML describes, relates, indexes, and presents them. SVG is not a general-purpose decoder for arbitrary binary media.
+The user's explicit requirement is that the local browser system described here—including receipts, resource representation and relationships, snapshots, derivatives, identities, navigation, and storage organization—is HTML. Apply the user's specific media submissions within that HTML-based system; do not replace the agreed product architecture with separate non-HTML product surfaces or assume an unapproved alternative representation.
 
 ### Layout independence
 
@@ -248,7 +281,7 @@ A preserved page should disclose whether it is complete, partial, blocked, dynam
 
 ## 11. Internet Archive and Wayback research
 
-The Internet Archive is a useful external source of historical captures and a reference implementation to study, not a required runtime dependency for the browser's own archive.
+Internet Archive/Wayback material in this document is research context only. The user has explicitly said that incorporating Wayback records is not part of this project direction. No import, incorporation, synchronization, or runtime integration of Wayback records is authorized or planned by this baseline.
 
 Relevant mechanisms and references:
 
@@ -267,7 +300,7 @@ Research-derived lessons:
 - Historical replay needs explicit date/resource provenance and honest missing-resource handling.
 - The browser's own archive should not silently fall back to live content when a historical dependency is unavailable.
 
-These sources informed the proposal; HLP and LWAP remain project designs and are not claimed to be standards or existing Internet Archive features.
+These sources are research references only. They do not create a product dependency or authorize incorporation of Wayback records. HLP and LWAP remain assistant-used working labels, not existing standards and not independent user-approved requirements.
 
 ## 12. Security and execution boundary
 
@@ -310,6 +343,6 @@ The architecture is consistent with the user's established direction only if:
 - Missing or approximate historical material is disclosed, never silently substituted.
 - Original receipts, derived representations, and user annotations remain distinguishable.
 - Logical local addresses survive physical storage changes and remote URL changes.
-- HTML is the common organizing/document language; SVG is embedded for graphics; binary media remains appropriately encoded data.
+- The complete local-web system described in the user's requirements is HTML-based, including receipt records, original-resource representation, snapshots, derivatives, identities, navigation, and storage organization; SVG and media-specific treatments follow the user's submitted media requirements.
 - Local records remain available offline without depending on the Internet Archive.
 - Security, consent, and provenance boundaries remain explicit.
