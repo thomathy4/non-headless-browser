@@ -59,23 +59,25 @@ class HtmlReencoderTest {
         assertTrue(record.selectFirst("summary")!!.text().contains("About us"))
         assertTrue(record.text().contains("https://example.test/about"))
         val historical = record.selectFirst("details.local-historical-captures")!!
-        assertTrue(historical.selectFirst("summary")!!.text() == "Historical captures")
-        assertTrue(historical.text().contains("No local historical captures indexed"))
+        assertTrue(historical.selectFirst("summary")!!.text() == "Local historical versions (not implemented)")
+        assertTrue(historical.text().contains("Historical navigation is not connected"))
         assertTrue(record.selectFirst("a[data-original-destination]")!!.attr("href") == "https://example.test/about")
     }
 
     @Test
-    fun addsStableLocalPageIdentityAndCaptureMetadata() {
+    fun addsPrototypeUrlKeysAndRepresentationTimestamp() {
         val input = """<html><body><p>Page</p></body></html>"""
         val first = Jsoup.parse(HtmlReencoder.reencode(input, "https://example.test/page"))
         val second = Jsoup.parse(HtmlReencoder.reencode(input, "https://example.test/page"))
-        assertTrue(first.selectFirst("meta[name=local-site-id]")!!.attr("content").isNotBlank())
-        assertTrue(first.selectFirst("meta[name=local-document-id]")!!.attr("content").isNotBlank())
-        assertTrue(first.selectFirst("meta[name=local-capture-generated-at]")!!.attr("content").isNotBlank())
-        assertTrue(first.selectFirst("meta[name=local-site-id]")!!.attr("content") ==
-            second.selectFirst("meta[name=local-site-id]")!!.attr("content"))
-        assertTrue(first.selectFirst("meta[name=local-document-id]")!!.attr("content") ==
-            second.selectFirst("meta[name=local-document-id]")!!.attr("content"))
+        assertTrue(first.selectFirst("meta[name=prototype-site-key]")!!.attr("content").isNotBlank())
+        assertTrue(first.selectFirst("meta[name=prototype-document-key]")!!.attr("content").isNotBlank())
+        assertTrue(first.selectFirst("meta[name=local-representation-generated-at]")!!.attr("content").isNotBlank())
+        assertTrue(first.selectFirst("meta[name=prototype-site-key]")!!.attr("content") ==
+            second.selectFirst("meta[name=prototype-site-key]")!!.attr("content"))
+        assertTrue(first.selectFirst("meta[name=prototype-document-key]")!!.attr("content") ==
+            second.selectFirst("meta[name=prototype-document-key]")!!.attr("content"))
+        assertTrue(first.text().contains("original HTTP response and its receipt metadata are not stored"))
+        assertTrue(first.text().contains("this preview is not persisted"))
     }
 
     @Test
