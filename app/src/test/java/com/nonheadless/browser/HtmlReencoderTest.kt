@@ -58,7 +58,9 @@ class HtmlReencoderTest {
         val record = doc.selectFirst("details.local-link-history")!!
         assertTrue(record.selectFirst("summary")!!.text().contains("About us"))
         assertTrue(record.text().contains("https://example.test/about"))
-        assertTrue(record.text().contains("No local historical captures indexed"))
+        val historical = record.selectFirst("details.local-historical-captures")!!
+        assertTrue(historical.selectFirst("summary")!!.text() == "Historical captures")
+        assertTrue(historical.text().contains("No local historical captures indexed"))
         assertTrue(record.selectFirst("a[data-original-destination]")!!.attr("href") == "https://example.test/about")
     }
 
