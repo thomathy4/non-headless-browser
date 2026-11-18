@@ -2,7 +2,6 @@ package com.nonheadless.browser
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import org.jsoup.parser.Parser
 import java.net.URI
 import java.security.MessageDigest
 import java.time.Instant
@@ -33,7 +32,7 @@ internal object HtmlReencoder {
             } else {
                 fallback.html()
             }
-            val fallbackNodes = Parser.parseFragment(fallbackMarkup, document.body(), pageUrl.orEmpty())
+            val fallbackNodes = Jsoup.parseBodyFragment(fallbackMarkup, pageUrl.orEmpty()).body().childNodes()
             counter += 1
             val id = "js-$counter"
             val replacement = Element("div")
