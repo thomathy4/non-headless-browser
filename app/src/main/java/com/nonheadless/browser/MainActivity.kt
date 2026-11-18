@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private var lastHttpUrl = "https://example.com"
     private var activeSnapshotLabel: String? = null
     private var mobileUserAgent = ""
+    private var suppressJsToggleReload = false
     private val desktopUserAgent =
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 
@@ -183,7 +184,7 @@ class MainActivity : AppCompatActivity() {
             webView.settings.javaScriptEnabled = enabled
             webView.settings.domStorageEnabled = enabled
             tvStatus.text = if (enabled) "JavaScript enabled" else "JavaScript disabled"
-            reloadCurrentPage()
+            if (!suppressJsToggleReload) reloadCurrentPage()
         }
         btnCapture.setOnClickListener { captureRenderedHtml() }
     }
@@ -196,11 +197,7 @@ class MainActivity : AppCompatActivity() {
     private fun normalizeUrl(raw: String): String? {
         val input = raw.trim()
         if (input.isEmpty()) return null
-        val localHost = input.startsWith("localhost", true) || input.startsWith("127.") ||
-            input.startsWith("10.") || input.startsWith("192.168.") ||
-            input.startsWith("[::1]") || input.startsWith("172.16.") ||
-            input.startsWith("172.17.") || input.startsWith("172.18.") ||
-            input.startsWith("172.19.") || input.startsWith("172.2")
+        val localHost = isLocalDevelopmentAddress(input)
         val url = when {
             input.startsWith("https://", true) || input.startsWith("http://", true) -> input
             localHost -> "http://" + input
@@ -210,6 +207,21 @@ class MainActivity : AppCompatActivity() {
         val scheme = uri.scheme?.lowercase()
         if ((scheme != "http" && scheme != "https") || extractNormalizedHost(uri) == null) return null
         return url
+    }
+
+    private fun isLocalDevelopmentAddress(input: String): Boolean {
+        val rawHost = Uri.parse("http://" + input).host?.lowercase() ?: return false
+        val host = rawHost.removePrefix("[").removeSuffix("]")
+        if (host == "::1" || host == "localhost" || host.endsWith(".localhost")) return true
+        val octets = host.split(".")
+        if (octets.size != 4) return false
+        val values = octets.map { it.toIntOrNull() ?: return false }
+        if (values.any { it !in 0..255 }) return false
+        val first = values[0]
+        val second = values[1]
+        return first == 10 || first == 127 ||
+            (first == 192 && second == 168) ||
+            (first == 172 && second in 16..31)
     }
 
     private fun navigateTo(raw: String) {
@@ -317,7 +329,9 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun renderHtmlInWebView(html: String, label: String, baseUrl: String) {
+        suppressJsToggleReload = true
         switchJs.isChecked = false
+        suppressJsToggleReload = false
         webView.settings.javaScriptEnabled = false
         webView.settings.domStorageEnabled = false
         activeSnapshotLabel = label + " (" + html.length + " chars)"
