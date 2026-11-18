@@ -27,11 +27,9 @@ internal object HtmlReencoder {
         // Parse the markup in the replacement DIV so the normal script and event pass
         // can inspect all fallback descendants consistently.
         document.select("noscript").toList().forEach { fallback ->
-            val fallbackMarkup = if (fallback.childNodes().all { it is org.jsoup.nodes.TextNode }) {
-                fallback.childNodes().joinToString("") { (it as org.jsoup.nodes.TextNode).wholeText }
-            } else {
-                fallback.html()
-            }
+            // Jsoup 1.24.1 parses NOSCRIPT fallback markup into an inspectable
+            // subtree. Clone those nodes directly so nested scripts and controls
+            // remain in the fallback container for the normal abstraction passes.
             counter += 1
             val id = "js-$counter"
             val replacement = Element("div")
@@ -39,13 +37,7 @@ internal object HtmlReencoder {
                 .addClass("js-reencoded-noscript")
                 .attr("data-js-reencoded", "noscript")
             replacement.appendElement("small").text("[JS Abstraction #$counter — NoScript Fallback]")
-            // Parse the fallback as a body fragment, not in the original NOSCRIPT
-            // context. With scripting enabled, NOSCRIPT contents can be exposed as
-            // raw text; inserting that text directly into a DIV can leave nested
-            // controls unparsed. Parsing in a normal body context restores the
-            // descendants so the script and event passes can inspect every node.
-            val parsedFallback = Jsoup.parseBodyFragment(fallbackMarkup, pageUrl.orEmpty())
-            parsedFallback.body().childNodes().forEach { child ->
+            fallback.childNodes().forEach { child ->
                 replacement.appendChild(child.clone())
             }
             fallback.replaceWith(replacement)
