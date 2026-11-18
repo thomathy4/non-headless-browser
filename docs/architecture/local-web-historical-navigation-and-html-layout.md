@@ -183,11 +183,13 @@ A page revision is addressable and immutable once committed as a historical reco
 
 A revision should identify its source receipt, transformation/reconstruction process, dependencies, and completeness. Changes to content, resource mappings, layout definitions, or reconstruction algorithms should be documented as revisions.
 
-## 7. HTML Layout Protocol (HLP)
+## 7. HTML as the complete local-web system
 
-HLP is a browser-wide convention implemented by the browser, not a new markup language and not an existing standards-track protocol.
+Earlier assistant drafts used “HTML Layout Protocol” (HLP) as a working label for these conventions. That label is not a separate protocol requirement and is not an independently approved product specification. The user's requirement is the substance: the local-web system is HTML, including its receipts, resource representations, snapshots, derivatives, persistent identities, canonical per-domain websites, navigation, and storage organization.
 
-Its purpose is to make HTML the shared container and connective structure for the local web:
+HTML is not a decorative front end over a separate archive/database/file-manager product. The HTML documents are the local web's records, relationships, indexes, identity declarations, navigation surfaces, and storage-organization representations. Browser implementation may use internal mechanisms to render and persist HTML efficiently, but those mechanisms do not replace the HTML system or become a separate user-facing product architecture.
+
+Its purpose is to keep the complete local web understandable and navigable through HTML:
 
 | Concern | HTML-first representation |
 |---|---|
@@ -204,7 +206,7 @@ Its purpose is to make HTML the shared container and connective structure for th
 | Storage visualization | Inline SVG allocation maps |
 | Completeness | HTML status records and visible explanations |
 
-HTML remains the document and semantic structure. CSS may be embedded in HTML for presentation. SVG may be embedded in HTML for scalable graphical representation. The browser should not introduce a separate proprietary document format for metadata, layout, history, or indexes.
+HTML remains the common document, semantic, record, relationship, identity, navigation, and organization structure. CSS may be embedded in HTML for presentation. SVG may be embedded in HTML for scalable graphical representation, in keeping with the user's media submissions. The browser should not introduce a separate proprietary document format or independent product surface for metadata, layout, history, indexes, receipts, identity, or local storage organization.
 
 The user's explicit requirement is that the local browser system described here—including receipts, resource representation and relationships, snapshots, derivatives, identities, navigation, and storage organization—is HTML. Apply the user's specific media submissions within that HTML-based system; do not replace the agreed product architecture with separate non-HTML product surfaces or assume an unapproved alternative representation.
 
@@ -221,9 +223,9 @@ Content identity must not depend on its current layout. A page may offer:
 
 Changing layout must not change the identity of the underlying page revision or duplicate its content. Layout definitions and changes are themselves addressable and historically documented.
 
-## 8. Local addressing and storage
+## 8. HTML local addressing and storage organization
 
-The local site needs stable logical addresses independent of remote URLs and physical storage placement.
+The user's local addressing and storage organization are represented and navigated through the HTML local web. Earlier assistant drafts called one possible internal allocation convention “LWAP”; that name is not an independently approved protocol requirement. The requirement is persistent HTML-based local identity, addressing, and organization independent of remote URLs and physical placement.
 
 Three address layers remain distinct:
 
@@ -244,13 +246,13 @@ LWAP is a working proposal for browser-internal addressing and allocation. Its c
 - An HTML address directory mapping logical addresses to documents, resources, and extents.
 - An optional inline SVG map for visualizing allocation.
 
-The HTML index is a readable view of the address directory, not a requirement to create one metadata record per byte. Fixed-size physical allocation units and variable logical content boundaries are separate design decisions.
+The HTML address/index documents are part of the local website itself, not merely a view layered over a separate user-facing storage product. Address ranges and chunk/extent details may be represented compactly in HTML; there is no requirement to create one metadata record per byte. Fixed-size allocation units and variable logical content boundaries remain distinct design decisions.
 
 Local addresses are resolved internally. LWAP identifiers are never sent to remote websites and do not replace HTTPS, TLS, or remote-origin semantics.
 
-## 9. Resource receipts, reconstruction, and media
+## 9. HTML resource receipts, originals, snapshots, derivatives, and media
 
-Every resource legitimately received should have a lightweight, immutable receipt record. Keep source identity, receipt facts, transformations, and current retrieval knowledge distinct.
+Each resource legitimately received has an actual, lightweight, immutable receipt record represented in the HTML local web. The original resource, receipt record, rendered snapshot, rewritten/compiled form, and reconstructed or otherwise derived representation remain distinguishable and related through HTML. Rewritten/compiled HTML refers to original receipts using compact escape-code identifiers rather than duplicating original material unnecessarily. Keep source identity, receipt facts, transformations, and evolving retrieval knowledge distinct.
 
 For resources that are reconstructed:
 
@@ -264,7 +266,7 @@ For resources that are reconstructed:
 
 For graphical media, the design direction is SVG-based graphical representation in the browser's displayed local experience. Raster source media may be temporary reconstruction input and may be discarded after successful verification according to the retention policy. SVG itself does not guarantee smaller storage or photographic fidelity; actual reconstruction and compression must be benchmarked on the target Android device.
 
-Audio remains encoded audio data decoded by a native media engine. SVG can provide waveforms and visual timelines, but does not decode arbitrary audio codecs. Media reconstruction should identify repeated structures and store shared patterns once, referencing them with timing, placement, transformation, and other parameters. Audio timing must be sample-accurate and need not align to video frame boundaries.
+The user's audio/media submissions are preserved as submitted: encoded audio may remain in its appropriate media encoding, while its receipt, identity, relationships, waveform, timeline, and local presentation belong to the HTML system. SVG can express waveforms and visual timelines; it is not itself a decoder for arbitrary audio codecs. Media reconstruction should identify repeated structures and store shared patterns once, with HTML references/parameters for timing, placement, transformation, and other relationships. Audio timing must be sample-accurate and need not align to video frame boundaries.
 
 ## 10. Provenance and evidence boundaries
 
@@ -316,18 +318,18 @@ These sources are research references only. They do not create a product depende
 
 ## 13. Implementation status and staged path
 
-This document records architecture, not completed implementation. The current Android app is an early WebView browser with HTML capture and script/event-handler neutralization. It does not yet implement the local website, persistent capture store, temporal resolver, HLP, LWAP, full resource capture, or media reconstruction.
+This document records architecture, not completed implementation. The current Android app is an early WebView browser with rendered-DOM snapshot extraction and script/event-handler neutralization. It does not yet implement actual HTML receipt records, persistent HTML site/document identities, one canonical local HTML website per domain, persistent HTML-based local storage organization, offline local navigation, complete resource receipt, temporal resolution, or media reconstruction.
 
 Suggested staged work:
 
-1. **HTML document model:** define site/document/revision identities and receipt records.
-2. **Local site root:** create one local HTML entry point per domain and a minimal local resolver.
-3. **Rewritten document:** generate a self-describing HTML page with original-link preservation and inline link-history disclosure.
-4. **Revision and page-set records:** capture dependencies, timestamps, completeness, and explicit missing-resource states.
-5. **Historical resolver:** navigate to exact local historical revisions; never silently substitute live content.
-6. **HTML index and allocation model:** prototype stable logical addresses and an HTML address directory.
-7. **Layout protocol:** define metadata conventions and multiple layouts without duplicating page identity.
-8. **Media reconstruction:** prototype on representative content and benchmark fidelity, storage, processing time, memory, and device thermals.
+1. **HTML receipt and identity records:** define actual resource receipts, persistent site/document/resource/revision identities, and the distinctions among original resources, rendered snapshots, and derived representations.
+2. **Canonical per-domain HTML website:** create one stable local HTML root per domain, with the domain's documents, resources, records, and links interconnected.
+3. **HTML local addressing and storage organization:** represent stable logical addresses, resource references, shared content, and allocation information within the local HTML system.
+4. **HTML rewriting and link relationships:** generate self-describing HTML that preserves original links, compact receipt references, provenance, and page context.
+5. **Offline local navigation:** resolve local documents and resources without a remote server; add exact historical revision navigation and explicit missing-resource states.
+6. **HTML revision and page-set records:** preserve dependencies, their individual timestamps, completeness, and changes without overwriting earlier records.
+7. **HTML layouts and presentation:** provide multiple layouts without changing content identity or duplicating the underlying page.
+8. **Media reconstruction:** apply the user's submitted media directions, verify reconstructions, preserve receipt/retrieval records, and benchmark fidelity, storage, processing time, memory, and device thermals.
 9. **Security and privacy review:** validate local/remote origin separation, permissions, user consent, and action execution boundaries.
 
 Each stage should be separately testable. No stage should be described as implemented until source changes and verification demonstrate it.
@@ -343,6 +345,6 @@ The architecture is consistent with the user's established direction only if:
 - Missing or approximate historical material is disclosed, never silently substituted.
 - Original receipts, derived representations, and user annotations remain distinguishable.
 - Logical local addresses survive physical storage changes and remote URL changes.
-- The complete local-web system described in the user's requirements is HTML-based, including receipt records, original-resource representation, snapshots, derivatives, identities, navigation, and storage organization; SVG and media-specific treatments follow the user's submitted media requirements.
+- Receipt records, original-resource representation, snapshots, derivatives, persistent identities, canonical local sites, navigation, and storage organization are all represented and connected through HTML, as the user expressly required; media payload handling follows the user's specific media submissions.
 - Local records remain available offline without depending on the Internet Archive.
 - Security, consent, and provenance boundaries remain explicit.
