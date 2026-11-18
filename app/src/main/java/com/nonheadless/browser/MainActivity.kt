@@ -246,7 +246,7 @@ class MainActivity : AppCompatActivity() {
             "(function(){return document.documentElement ? document.documentElement.outerHTML : '';})()"
         ) { result ->
             val html = try {
-                JSONTokener(result ?: "\"\\\"\\\"").nextValue() as? String ?: ""
+                JSONTokener(result ?: "\"\\\"").nextValue() as? String ?: ""
             } catch (_: Exception) { "" }
             if (html.isBlank()) {
                 tvStatus.text = "Capture returned no document HTML"
