@@ -187,7 +187,9 @@ internal object HtmlReencoder {
             data.appendElement("p").text("Original href: $rawHref")
             data.appendElement("p").text("Resolved destination: $destination")
             data.appendElement("p").text("Local destination: not assigned by this prototype")
-            data.appendElement("p").text("Historical captures: no local historical captures indexed")
+            val historical = data.appendElement("details").addClass("local-historical-captures")
+            historical.appendElement("summary").text("Historical captures")
+            historical.appendElement("p").text("No local historical captures indexed")
             data.appendElement("p").text(
                 "The original link attributes are preserved on the destination link below."
             )
