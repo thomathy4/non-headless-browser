@@ -13,7 +13,7 @@ An Android WebView browser with JavaScript disabled by default, a main-frame dom
 
 ## Architecture direction
 
-The longer-term design is an HTML-first local web: one locally navigable website per domain, with a canonical HTML entry point, self-describing rewritten pages, historical link navigation, original-receipt/provenance records, revisions, and stable local addressing. This is the intended architecture, not the current product capability. Historical captures and their dependencies are represented within the page's own HTML interface; missing or approximate material must be disclosed rather than silently replaced with live content.
+The longer-term design is an HTML-first local web: one locally navigable website per domain, with a canonical HTML entry point, self-describing rewritten pages, historical link navigation, original-receipt/provenance records, revisions, and stable local addressing. This is the intended architecture, not the current product capability. When implemented, historical captures and their dependencies will be represented within the page's own HTML interface; missing or approximate material must be disclosed rather than silently replaced with live content.
 
 The proposed **HTML Layout Protocol (HLP)** and **Local Web Address and Allocation Protocol (LWAP)** are project design proposals, not existing standards and not yet implemented. The Internet Archive/Wayback references in the architecture document are research context only; this product work does not import or integrate Wayback records.
 
