@@ -35,4 +35,17 @@ class HtmlReencoderTest {
         assertTrue(doc.select("noscript").isEmpty())
         assertTrue(doc.select(".js-reencoded-noscript p").text().contains("Fallback text"))
     }
+
+    @Test
+    fun reencodesScriptsAndEventsInsideNoscriptFallback() {
+        val input = """<noscript><p>Fallback</p><script>window.fallback = true;</script><button onclick="runFallback()">Run</button></noscript>"""
+        val doc = Jsoup.parse(HtmlReencoder.reencode(input, "https://example.test"))
+        val fallback = doc.selectFirst(".js-reencoded-noscript")!!
+        assertTrue(fallback.select("p").text().contains("Fallback"))
+        assertTrue(fallback.select("script").isEmpty())
+        assertTrue(fallback.select("[data-js-reencoded=inline]").size == 1)
+        val button = fallback.selectFirst("button")!!
+        assertFalse(button.hasAttr("onclick"))
+        assertTrue(button.hasAttr("data-js-event-click"))
+    }
 }
