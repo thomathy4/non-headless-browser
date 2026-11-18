@@ -13,11 +13,25 @@ An Android WebView browser with JavaScript disabled by default, a main-frame dom
 
 ## Architecture direction
 
-The longer-term design is an HTML-first local web: one locally navigable website per domain, with a canonical HTML entry point, self-describing rewritten pages, historical link navigation, original-receipt/provenance records, revisions, and stable local addressing. This is the intended architecture, not the current product capability. When implemented, historical captures and their dependencies will be represented within the page's own HTML interface; missing or approximate material must be disclosed rather than silently replaced with live content.
+The governing design is the user's HTML-based local web: one canonical, interconnected local HTML website per domain. Actual resource receipt records, original-resource representation, rendered snapshots, derived representations, persistent site/document identities, local navigation, and local storage organization all belong to this HTML system. A visited or downloaded website is intended to remain reviewable and navigable offline. This is intended architecture, not current product capability. Historical link navigation concerns the browser's own records; Wayback research does not authorize Wayback import or integration.
 
-The proposed **HTML Layout Protocol (HLP)** and **Local Web Address and Allocation Protocol (LWAP)** are project design proposals, not existing standards and not yet implemented. The Internet Archive/Wayback references in the architecture document are research context only; this product work does not import or integrate Wayback records.
+The names **HTML Layout Protocol (HLP)** and **Local Web Address and Allocation Protocol (LWAP)** are working labels from earlier drafts, not existing standards or independently approved requirements. Internet Archive/Wayback references are research context only. No Wayback records are imported, incorporated, synchronized, or integrated.
 
 See [Local Web, Historical Navigation, and HTML Layout Architecture](docs/architecture/local-web-historical-navigation-and-html-layout.md) for the architecture, Wayback/Internet Archive research, design principles, limitations, and staged implementation path.
+
+## User-submitted project baseline
+
+The browser's governing product architecture is HTML-based. HTML is not merely a display format: the user's requirements place resource receipt records, original-resource representation, rendered snapshots, derived representations, persistent site/document identities, the canonical local website for each domain, navigation, and storage organization within the HTML system. Browser foundations, including settings, storage, and navigation, are to be built from, by, and for HTML.
+
+Each domain is intended to have one canonical local HTML website, with interconnected pages, resources, receipts, representations, and links. Resource receipts are actual and immutable; original material, its receipt, rendered snapshots, and derived representations remain distinguishable and related. Rewritten/compiled HTML uses compact escape-code references to receipts rather than needlessly duplicating original material. Stable local identities are distinct from remote URLs and physical storage placement.
+
+A visited or downloaded website should remain reviewable and navigable offline. Changes accumulate as local records/revisions, with local navigation independent of the remote server. Preservation records what was legitimately delivered, respects access controls and applicable restrictions, and honestly identifies missing, blocked, dynamic, incomplete, or partly reproducible material.
+
+Media submissions include SVG/JPEG image derivatives, inline video with conversion deferred in the earlier direction, and later algorithmic reconstruction/compression by shared patterns and parameters. An earlier direction retained original images alongside derivatives; a later direction allowed original media payloads to be discarded after verified reconstruction while retaining immutable receipt and retrieval information. These directions are preserved chronologically; no universal media-retention rule is invented here.
+
+No Wayback record import or integration is part of this product. Internet Archive/Wayback material in the architecture document is research context only.
+
+The user's current consent authorizes consolidation of this baseline, correction of the existing project background/repository documentation, and work on the existing feature branch. It does not authorize merging PR #1, changing main, or publishing a release.
 
 ## Domain lock boundary
 
@@ -27,7 +41,7 @@ The lock applies to top-level navigations initiated by links, page redirects, an
 
 The current Snapshot HTML action extracts `document.documentElement.outerHTML` from WebView and processes that rendered DOM with Jsoup. It is not an original HTTP-response capture and does not create an immutable receipt. It replaces inline/external script elements, stores inline script source as escaped text, preserves external script URLs as links, converts inline on-event attributes to data attributes, converts noscript containers to ordinary div elements, and appends a provenance manifest.
 
-The HTML snapshot includes a representation-status disclosure, provisional URL-derived prototype keys (not registered local identities), a representation-generated timestamp (not a receipt or capture time), and one expandable record for each original hyperlink. Each link record preserves the original href and link attributes and exposes the resolved destination. Historical navigation is not implemented; the placeholder explicitly says so. The current preview is not persisted, no original HTTP response receipt is stored, and no historical records are asserted.\n\nThis is script neutralization for inspection, **not a complete HTML sanitizer**. It does not guarantee that every active HTML feature, embedded frame, remote resource, form, CSS behavior, or navigation mechanism is inert. Rendered snapshots are displayed with JavaScript disabled.
+The HTML snapshot includes a representation-status disclosure, provisional URL-derived prototype keys (not persistent identities), a representation-generated timestamp (not a receipt or capture time), and expandable records for original hyperlinks. The current preview is not persisted; no actual original-resource receipt record or persistent local site is created, and no historical navigation is implemented.\n\nThis is script neutralization for inspection, **not a complete HTML sanitizer**. It does not guarantee that every active HTML feature, embedded frame, remote resource, form, CSS behavior, or navigation mechanism is inert. Rendered snapshots are displayed with JavaScript disabled.
 
 ## Network and privacy
 
