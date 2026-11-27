@@ -9,7 +9,8 @@ An Android WebView browser with JavaScript disabled by default, a main-frame dom
 | JavaScript | Off | Disables page-authored JavaScript and DOM storage on startup. |
 | Domain Lock | On | Restricts top-level navigation to the current root host and its subdomains. |
 | Desktop UA | Off | Requests desktop layouts with a Linux Chromium User-Agent. |
-| Snapshot HTML | — | Extracts the rendered DOM, converts scripts and inline event handlers into inspectable HTML metadata, and supports preview, render, copy, share, and saving a derived representation into Local Web. |\n| Local Web | — | Opens the browser-owned HTML index. Saved snapshots are grouped under one canonical HTML site index per host, with persistent document IDs and append-only revision files. |
+| Snapshot HTML | — | Extracts the rendered DOM, converts scripts and inline event handlers into inspectable HTML metadata, and supports preview, render, copy, share, and saving a derived representation into Local Web. |
+| Local Web | — | Opens the browser-owned HTML index. Saved snapshots are grouped under one canonical HTML site index per host, with persistent document IDs and append-only revision files. |
 
 ## Architecture direction
 
