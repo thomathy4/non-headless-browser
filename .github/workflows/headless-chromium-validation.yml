@@ -1,0 +1,44 @@
+name: Headless Chromium validation
+
+on:
+  push:
+    branches: [ work/headless-chromium-validation ]
+    paths:
+      - "tools/headless_chromium/**"
+      - "skills/headless-chromium-browser/**"
+      - ".github/workflows/headless-chromium-validation.yml"
+  workflow_dispatch:
+  pull_request:
+    branches: [ work/android-browser-review-fixes ]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tools/headless_chromium/pyproject.toml
+      - name: Install package and test dependencies
+        working-directory: tools/headless_chromium
+        run: python -m pip install -e ".[test]"
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+      - name: Run unit, security, and live retrieval tests
+        working-directory: tools/headless_chromium
+        run: python -m pytest -q
+      - name: Capture example.com evidence
+        working-directory: tools/headless_chromium
+        run: python -m headless_chromium.fetcher https://example.com/ --out artifacts/example-com
+      - uses: actions/upload-artifact@v4
+        with:
+          name: headless-chromium-example-com-evidence
+          path: tools/headless_chromium/artifacts/example-com/
+          if-no-files-found: error
+          retention-days: 14
