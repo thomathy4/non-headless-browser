@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                 val uri = request?.url ?: return null
-                if (uri.scheme.equals("https", true) && uri.host.equals("local.browser", true)) {
+                if (uri.scheme.equals("https", true) && uri.host.equals("local.browser.invalid", true)) {
                     return localWebStore.interceptLocalRequest(uri.path ?: "/index.html")
                 }
                 return super.shouldInterceptRequest(view, request)
@@ -379,11 +379,11 @@ class MainActivity : AppCompatActivity() {
     private fun openLocalWeb() {
         activeSnapshotLabel = "Local Web"
         tvStatus.text = "Opening Local Web..."
-        webView.loadUrl("https://local.browser/index.html")
+        webView.loadUrl("https://local.browser.invalid/index.html")
     }
 
     private fun isLocalWebUrl(uri: Uri): Boolean =
-        uri.scheme.equals("https", true) && uri.host.equals("local.browser", true)
+        uri.scheme.equals("https", true) && uri.host.equals("local.browser.invalid", true)
 
     private fun registerBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
