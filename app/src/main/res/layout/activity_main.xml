@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center_vertical" android:orientation="horizontal" android:padding="6dp">
+        <Button android:id="@+id/btnBack" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="44dp" android:layout_height="44dp" android:minWidth="0dp" android:text="←" />
+        <Button android:id="@+id/btnForward" style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="44dp" android:layout_height="44dp" android:minWidth="0dp" android:text="→" />
+        <EditText android:id="@+id/etUrl" android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp" android:layout_weight="1" android:hint="Enter URL or 127.0.0.1:8000"
+            android:imeOptions="actionGo" android:inputType="textUri" android:maxLines="1"
+            android:singleLine="true" android:textSize="14sp" />
+        <Button android:id="@+id/btnGo" android:layout_width="wrap_content"
+            android:layout_height="44dp" android:minWidth="56dp" android:text="Go" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="10dp">
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchDomainLock" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:checked="true" android:text="Domain Lock" android:textSize="13sp" />
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <Button android:id="@+id/btnCapture" style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content" android:layout_height="38dp"
+            android:text="Snapshot HTML" android:textSize="12sp" />
+        <Button android:id="@+id/btnLocalWeb" style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content" android:layout_height="38dp"
+            android:layout_marginStart="4dp" android:text="Local Web" android:textSize="12sp" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="10dp"
+        android:paddingBottom="4dp">
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchDesktopUa" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:checked="false" android:text="Desktop UA" android:textSize="13sp" />
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchJs" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:checked="false" android:text="JavaScript" android:textSize="13sp" />
+    </LinearLayout>
+    <TextView android:id="@+id/tvStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:ellipsize="end" android:maxLines="2" android:paddingHorizontal="10dp"
+        android:paddingBottom="4dp" android:text="Ready" android:textSize="11sp" />
+    <ProgressBar android:id="@+id/progressBar" style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent" android:layout_height="3dp" android:max="100" android:visibility="gone" />
+    <WebView android:id="@+id/webView" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" />
+</LinearLayout>
