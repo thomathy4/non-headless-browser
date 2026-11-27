@@ -96,9 +96,10 @@ def validate_target(
         raise ValueError("Local or special-use hostname blocked")
     try:
         literal = ipaddress.ip_address(host)
-        addresses = {str(literal)}
     except ValueError:
         addresses = resolver(host)
+    else:
+        raise ValueError(f"Non-public or IP-literal destination blocked: {literal}")
     for value in addresses:
         address = ipaddress.ip_address(value)
         if not address.is_global:
