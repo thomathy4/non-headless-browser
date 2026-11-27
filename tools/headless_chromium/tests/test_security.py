@@ -1,5 +1,8 @@
 import asyncio
 import os
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
 import pytest
 from headless_chromium.fetcher import sanitize_html
 
@@ -57,25 +60,29 @@ def test_unsupported_schemes_and_url_credentials_are_rejected():
 
 
 def test_redirect_to_different_host_is_blocked():
-    url = "http://127.0.0.1:8000/redirect"
-    fixtures = {
-        url: {
-            "status": 302,
-            "headers": {"location": "http://localhost:8000/landing"},
-            "body": "",
-        }
-    }
+    class RedirectHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(302)
+            self.send_header("Location", f"http://localhost:{self.server.server_port}/landing")
+            self.end_headers()
+
+        def log_message(self, *_args):
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), RedirectHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    url = f"http://127.0.0.1:{server.server_port}/redirect"
     try:
         with pytest.raises(FetchBlockedError, match="stopped by policy"):
             asyncio.run(fetch_static(
                 url,
                 private_test_hosts=frozenset({"127.0.0.1"}),
-                _test_responses=fixtures,
             ))
-    except Exception as exc:
-        if os.getenv("GITHUB_ACTIONS", "").lower() != "true" and "ERR_BLOCKED_BY_ADMINISTRATOR" in str(exc):
-            pytest.skip("The execution environment blocks Chromium loopback navigation")
-        raise
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2)
 
 
 def test_cross_origin_subresource_is_blocked_and_javascript_stays_off():
@@ -112,7 +119,6 @@ def test_cross_origin_subresource_is_blocked_and_javascript_stays_off():
     assert any("localhost" in item["url"] for item in result.blocked_resources)
     assert "<script" not in result.sanitized_html.lower()
     assert result.complete is False
-
 
 
 def test_sanitizer_removes_active_markup_and_hashes_are_stable():
