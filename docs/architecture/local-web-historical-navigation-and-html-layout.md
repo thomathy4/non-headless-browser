@@ -348,3 +348,26 @@ The architecture is consistent with the user's established direction only if:
 - Receipt records, original-resource representation, snapshots, derivatives, persistent identities, canonical local sites, navigation, and storage organization are all represented and connected through HTML, as the user expressly required; media payload handling follows the user's specific media submissions.
 - Local records remain available offline without depending on the Internet Archive.
 - Security, consent, and provenance boundaries remain explicit.
+
+
+### Implementation update — 2026-11-27
+
+The first persistent Local Web vertical slice is implemented on `work/android-browser-review-fixes`:
+
+- The browser can save its script-neutralized rendered-DOM snapshot as an HTML revision.
+- A root `index.html` lists local sites; each domain has one canonical site `index.html`; each saved source URL has a document `index.html`; each save creates a new revision HTML file.
+- Site, document, and revision identities are stored in HTML metadata. Repeated saves of the same normalized source URL reuse the site and document identifiers and create a new revision. Cross-URL document identity correlation is not implemented.
+- The saved representation records its source URL, generation time, and SHA-256 digest of the captured rendered HTML before local metadata was added.
+- The Local Web screen uses the reserved `https://local.browser.invalid/` origin. Requests to that exact host are served from HTML files under the app's private Local Web directory; path traversal is rejected.
+- The Local Web index, site, document, and revision links are navigable without the remote server.
+
+**Evidence boundary and remaining work:** This is persistence of a derived rendered-DOM snapshot, not capture of the original HTTP response. It does not record the original response body, response headers, or actual resource receipt facts. It does not yet capture resource dependencies, provide complete offline replay, rewrite all remote resource references, correlate identity when a remote URL changes, implement the user's logical address allocation model, or resolve historical links. A saved page may still refer to external resources and therefore may not render completely offline. Script/event neutralization remains explicitly distinct from a complete HTML sanitizer.
+
+Current stage assessment:
+- Stage 1 (receipts and identity): partial — persistent site/document/revision identities and derived-representation records exist; original-resource receipts remain unimplemented.
+- Stage 2 (canonical per-domain HTML website): first slice implemented — root and per-domain HTML indexes are persisted.
+- Stage 3 (local addressing/storage organization): not implemented beyond the current UUID identities and HTML directory links.
+- Stage 5 (offline navigation): local index/document/revision navigation is implemented; complete page/resource replay is not.
+- Stage 6 (revision/page-set records): snapshot revision history is implemented; dependency page-set records are not.
+
+The feature branch and PR remain isolated from `main`. CI and device verification must be reported separately from source implementation.
