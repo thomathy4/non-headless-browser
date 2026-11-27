@@ -214,8 +214,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reloadCurrentPage() {
-        if (activeSnapshotLabel != null) navigateTo(lastHttpUrl)
-        else if (webView.url != null) webView.reload()
+        val current = webView.url
+        if (current != null && isLocalWebUrl(Uri.parse(current))) webView.reload()
+        else if (activeSnapshotLabel != null) navigateTo(lastHttpUrl)
+        else if (current != null) webView.reload()
     }
 
     private fun normalizeUrl(raw: String): String? {
@@ -276,6 +278,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun snapshotRenderedHtml() {
+        val current = webView.url
+        if (activeSnapshotLabel != null || (current != null && isLocalWebUrl(Uri.parse(current)))) {
+            tvStatus.text = "Snapshot capture is available from a live remote page, not a Local Web record or preview."
+            Toast.makeText(this, "Open a live remote page to capture a snapshot", Toast.LENGTH_LONG).show()
+            return
+        }
         tvStatus.text = "Extracting the rendered DOM snapshot..."
         val sourceUrl = lastHttpUrl
         webView.evaluateJavascript(
