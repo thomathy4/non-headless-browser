@@ -94,7 +94,12 @@ internal class LocalWebStore(private val root: File) {
         val relative = decoded.removePrefix("/").ifBlank { "index.html" }
         val base = root.canonicalFile
         val target = File(base, relative).canonicalFile
-        if (!target.path.startsWith(base.path + File.separator) || !target.isFile) return null
+        if (!target.path.startsWith(base.path + File.separator)) return null
+        if (relative == "index.html" && !target.exists()) {
+            val sitesDir = File(root, "sites").apply { mkdirs() }
+            writeRootIndex(sitesDir)
+        }
+        if (!target.isFile) return null
         if (!target.name.endsWith(".html", ignoreCase = true)) return null
         return try { WebResourceResponse("text/html", "UTF-8", target.inputStream()) }
         catch (_: Exception) { null }
