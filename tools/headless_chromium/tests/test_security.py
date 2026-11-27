@@ -1,8 +1,5 @@
 import asyncio
 import os
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from threading import Thread
-
 import pytest
 from headless_chromium.fetcher import sanitize_html
 
@@ -18,6 +15,12 @@ def test_loopback_literal_is_rejected():
     origin = ("http", "127.0.0.1", 80)
     with pytest.raises(ValueError, match="Non-public"):
         validate_target("http://127.0.0.1/", origin)
+
+
+def test_public_ip_literal_is_rejected():
+    origin = ("https", "93.184.216.34", 443)
+    with pytest.raises(ValueError, match="IP-literal"):
+        validate_target("https://93.184.216.34/", origin)
 
 
 def test_private_dns_answer_is_rejected():
@@ -100,7 +103,7 @@ def test_cross_origin_subresource_is_blocked_and_javascript_stays_off():
             _test_responses=fixtures,
         ))
     except Exception as exc:
-        if "ERR_BLOCKED_BY_ADMINISTRATOR" in str(exc):
+        if os.getenv("GITHUB_ACTIONS", "").lower() != "true" and "ERR_BLOCKED_BY_ADMINISTRATOR" in str(exc):
             pytest.skip("The execution environment blocks Chromium loopback navigation")
         raise
     assert result.javascript_enabled is False
