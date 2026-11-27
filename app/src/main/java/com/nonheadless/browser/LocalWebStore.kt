@@ -6,6 +6,7 @@ import org.jsoup.nodes.Document
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
+import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.StandardCopyOption
 import java.security.MessageDigest
 import java.time.Instant
@@ -187,7 +188,11 @@ internal class LocalWebStore(private val root: File) {
         target.parentFile?.mkdirs()
         val temp = File(target.parentFile, target.name + ".tmp")
         temp.writeText(content, Charsets.UTF_8)
-        Files.move(temp.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        try {
+            Files.move(temp.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        } catch (_: AtomicMoveNotSupportedException) {
+            Files.move(temp.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
     }
 
     private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
