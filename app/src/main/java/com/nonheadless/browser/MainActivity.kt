@@ -17,6 +17,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebResourceResponse
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnForward: Button
     private lateinit var btnGo: Button
     private lateinit var btnCapture: Button
+    private lateinit var btnLocalWeb: Button
     private lateinit var switchDomainLock: SwitchMaterial
     private lateinit var switchDesktopUa: SwitchMaterial
     private lateinit var switchJs: SwitchMaterial
@@ -45,6 +47,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvStatus: TextView
 
     private var lockedRootHost: String? = null
+    private val localWebStore by lazy { LocalWebStore(java.io.File(filesDir, "local-web")) }
     private var lastHttpUrl = "https://example.com"
     private var activeSnapshotLabel: String? = null
     private var mobileUserAgent = ""
@@ -61,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         btnForward = findViewById(R.id.btnForward)
         btnGo = findViewById(R.id.btnGo)
         btnCapture = findViewById(R.id.btnCapture)
+        btnLocalWeb = findViewById(R.id.btnLocalWeb)
         switchDomainLock = findViewById(R.id.switchDomainLock)
         switchDesktopUa = findViewById(R.id.switchDesktopUa)
         switchJs = findViewById(R.id.switchJs)
@@ -96,8 +100,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
         webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+                val uri = request?.url ?: return null
+                if (uri.scheme.equals("https", true) && uri.host.equals("local.browser", true)) {
+                    return localWebStore.interceptLocalRequest(uri.path ?: "/index.html")
+                }
+                return super.shouldInterceptRequest(view, request)
+            }
+
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 val target = request?.url ?: return true
+                if (isLocalWebUrl(target)) return false
                 if (!request.isForMainFrame) return false
                 val scheme = target.scheme?.lowercase()
                 val host = extractNormalizedHost(target)
@@ -116,6 +129,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                if (url != null && isLocalWebUrl(Uri.parse(url))) {
+                    tvStatus.text = "Opening Local Web..."
+                    updateNavButtons()
+                    return
+                }
                 if (activeSnapshotLabel == null && url != null &&
                     (url.startsWith("https://") || url.startsWith("http://"))) {
                     lastHttpUrl = url
@@ -126,6 +144,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageFinished(view: WebView?, url: String?) {
+                if (url != null && isLocalWebUrl(Uri.parse(url))) {
+                    tvStatus.text = "Local Web | Browser-owned HTML records"
+                    updateNavButtons()
+                    return
+                }
                 val snapshot = activeSnapshotLabel
                 if (snapshot != null) {
                     etUrl.setText(lastHttpUrl)
@@ -187,6 +210,7 @@ class MainActivity : AppCompatActivity() {
             if (!suppressJsToggleReload) reloadCurrentPage()
         }
         btnCapture.setOnClickListener { snapshotRenderedHtml() }
+        btnLocalWeb.setOnClickListener { openLocalWeb() }
     }
 
     private fun reloadCurrentPage() {
@@ -279,6 +303,7 @@ class MainActivity : AppCompatActivity() {
             text = "Re-encode scripts and inline event handlers"
             isChecked = true
         }
+        val saveLocal = Button(this).apply { text = "Save to Local Web" }
         val render = Button(this).apply { text = "Render in Browser" }
         val preview = TextView(this).apply {
             typeface = Typeface.MONOSPACE
@@ -287,6 +312,7 @@ class MainActivity : AppCompatActivity() {
         }
         val scroll = ScrollView(this).apply { addView(preview) }
         container.addView(toggle)
+        container.addView(saveLocal)
         container.addView(render)
         container.addView(scroll)
         var dialog: AlertDialog? = null
@@ -299,6 +325,17 @@ class MainActivity : AppCompatActivity() {
             tvStatus.text = "Snapshot prepared: " + html.length + " characters (" + label() + ")"
         }
         toggle.setOnCheckedChangeListener { _, _ -> refresh() }
+        saveLocal.setOnClickListener {
+            try {
+                val saved = localWebStore.saveRenderedSnapshot(sourceUrl, neutralized)
+                tvStatus.text = "Saved local representation | site " + saved.siteId.take(8) +
+                    " | document " + saved.documentId.take(8) + " | revision " + saved.revisionId.take(8)
+                Toast.makeText(this, "Saved to Local Web", Toast.LENGTH_LONG).show()
+            } catch (error: Exception) {
+                tvStatus.text = "Local save failed: " + (error.message ?: "unknown error")
+                Toast.makeText(this, "Could not save local representation", Toast.LENGTH_LONG).show()
+            }
+        }
         render.setOnClickListener {
             val html = chosen()
             val mode = label()
@@ -338,6 +375,15 @@ class MainActivity : AppCompatActivity() {
         tvStatus.text = "Rendering " + label + "..."
         webView.loadDataWithBaseURL(baseUrl, html, "text/html", "UTF-8", baseUrl)
     }
+
+    private fun openLocalWeb() {
+        activeSnapshotLabel = "Local Web"
+        tvStatus.text = "Opening Local Web..."
+        webView.loadUrl("https://local.browser/index.html")
+    }
+
+    private fun isLocalWebUrl(uri: Uri): Boolean =
+        uri.scheme.equals("https", true) && uri.host.equals("local.browser", true)
 
     private fun registerBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
